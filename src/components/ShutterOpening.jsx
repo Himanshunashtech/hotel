@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import RoyalLogo from './RoyalLogo';
-import { soundscape } from '../utils/audio';
 
 export default function ShutterOpening({ onComplete }) {
   const containerRef = useRef(null);
@@ -15,10 +14,6 @@ export default function ShutterOpening({ onComplete }) {
   const openShutter = () => {
     if (isOpen) return;
     setIsOpen(true);
-
-    try {
-      soundscape.play();
-    } catch (e) {}
 
     const tl = gsap.timeline({
       onComplete: () => {

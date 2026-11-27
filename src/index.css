@@ -12,12 +12,58 @@
   font-family: 'Cinzel', serif;
 }
 
+.font-decorative {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+}
+
+.font-italiana {
+  font-family: 'Italiana', serif;
+}
+
 .font-cormorant {
   font-family: 'Cormorant Garamond', serif;
 }
 
 .font-sans {
   font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Elegant Minimalist Silver / Platinum Typography Effect */
+.embroidery-title,
+.silver-title {
+  font-family: 'Cinzel', serif;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 25%, #CBD5E1 65%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.85));
+  letter-spacing: 0.2em;
+}
+
+.embroidery-sub,
+.silver-sub {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 45%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
+  letter-spacing: 0.08em;
+}
+
+.embroidery-desc,
+.silver-desc {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #CBD5E1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+  letter-spacing: 0.05em;
+}
+
+/* Subtle silver accent running lines */
+.embroidery-stitch-line,
+.silver-line {
+  height: 1px;
+  background-image: linear-gradient(to right, transparent, rgba(203, 213, 225, 0.4), transparent);
+  position: relative;
 }
 
 /* Luxury gold gradient utilities */

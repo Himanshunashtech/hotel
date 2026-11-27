@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ChevronDown, Volume2, VolumeX, Sparkles } from 'lucide-react';
-import { soundscape } from '../utils/audio';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,17 +10,17 @@ const TOTAL_FRAMES = 384;
 const CHAPTERS = [
   {
     id: 'arrival',
-    label: 'Arrival',
+    label: 'The Sanctuary',
     startFrame: 0,
     endFrame: 65,
     title: 'AMRIT MAHAL',
     subtitle: 'The Royal Lake Sanctuary • Udaipur',
-    info: 'A private island palace floating on the sacred waters of Lake Pichola',
+    info: 'A sovereign palace floating upon the sacred waters of Lake Pichola',
     align: 'center',
   },
   {
     id: 'courtyard',
-    label: 'Courtyard',
+    label: 'The Courtyard',
     startFrame: 66,
     endFrame: 135,
     title: 'THE ROYAL COURTYARD',
@@ -69,7 +67,6 @@ const CHAPTERS = [
     subtitle: 'Lake Pichola • Rajasthan',
     info: 'An immortal golden jewel upon the evening waters',
     align: 'center',
-    showCta: true,
   },
 ];
 
@@ -80,8 +77,6 @@ export default function CinematicScroller({ onOpenReserve }) {
   const [loadedCount, setLoadedCount] = useState(0);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [activeChapterIndex, setActiveChapterIndex] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   // Frame path formatter
   const getFramePath = (index) => {
@@ -137,6 +132,10 @@ export default function CinematicScroller({ onOpenReserve }) {
     const img = imagesRef.current[index] || imagesRef.current[0];
     if (!img || !img.complete) return;
 
+    // Enable high-quality bicubic smoothing
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
     const cw = canvas.width;
     const ch = canvas.height;
     const iw = img.naturalWidth || 1280;
@@ -146,11 +145,13 @@ export default function CinematicScroller({ onOpenReserve }) {
     const vRatio = ch / ih;
     const ratio = Math.max(hRatio, vRatio);
 
-    const centerShiftX = (cw - iw * ratio) / 2;
-    const centerShiftY = (ch - ih * ratio) / 2;
+    const renderW = Math.round(iw * ratio);
+    const renderH = Math.round(ih * ratio);
+    const centerShiftX = Math.round((cw - renderW) / 2);
+    const centerShiftY = Math.round((ch - renderH) / 2);
 
     ctx.clearRect(0, 0, cw, ch);
-    ctx.drawImage(img, 0, 0, iw, ih, centerShiftX, centerShiftY, iw * ratio, ih * ratio);
+    ctx.drawImage(img, 0, 0, iw, ih, centerShiftX, centerShiftY, renderW, renderH);
   };
 
   // Canvas Resize handler for crisp high-DPI rendering
@@ -186,7 +187,6 @@ export default function CinematicScroller({ onOpenReserve }) {
         anticipatePin: 1,
         onUpdate: (self) => {
           const progress = self.progress;
-          setScrollProgress(Math.round(progress * 100));
 
           const targetFrame = Math.min(
             TOTAL_FRAMES - 1,
@@ -209,11 +209,6 @@ export default function CinematicScroller({ onOpenReserve }) {
     return () => ctx.revert();
   }, []);
 
-  const toggleSound = () => {
-    const playing = soundscape.toggle();
-    setIsPlayingAudio(playing);
-  };
-
   const activeChapter = CHAPTERS[activeChapterIndex] || CHAPTERS[0];
 
   return (
@@ -221,80 +216,45 @@ export default function CinematicScroller({ onOpenReserve }) {
       ref={containerRef}
       className="relative w-full h-screen overflow-hidden bg-[#05070B]"
     >
-      {/* 3D Background Video Canvas */}
+      {/* 3D Background Video Canvas with Sharp Contrast Tuning */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+        className="absolute inset-0 w-full h-full z-0 pointer-events-none"
+        style={{
+          imageRendering: '-webkit-optimize-contrast',
+          filter: 'contrast(1.06) brightness(1.02)',
+        }}
       />
 
-      {/* Subtle Cinematic Vignette for Text Contrast */}
-      <div className="absolute inset-0 bg-radial-[circle_at_center,transparent_45%,rgba(3,5,9,0.7)_100%] pointer-events-none z-10" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none z-10" />
+      {/* Subtle Cinematic Vignette for Text Contrast (Clean & Non-Hazy) */}
+      <div className="absolute inset-0 bg-radial-[circle_at_center,transparent_55%,rgba(3,5,9,0.55)_100%] pointer-events-none z-10" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/40 pointer-events-none z-10" />
 
       {/* Initial Subtle Loader */}
-      {loadedCount < 30 && (
+      {loadedCount < 25 && (
         <div className="absolute inset-0 z-40 bg-[#05070B] flex flex-col items-center justify-center p-8 transition-opacity duration-700">
-          <div className="w-12 h-12 rounded-full border-2 border-[#D4AF37]/30 border-t-[#D4AF37] animate-spin mb-4" />
-          <h2 className="font-cinzel text-lg text-[#FBF9F5] tracking-[0.25em] uppercase mb-1">
+          <div className="w-8 h-8 rounded-full border-2 border-slate-600/30 border-t-slate-200 animate-spin mb-3" />
+          <h2 className="embroidery-title text-xs tracking-[0.25em] uppercase">
             AMRIT MAHAL
           </h2>
-          <span className="text-[10px] text-[#D4AF37] tracking-[0.3em] uppercase font-sans">
-            Preparing Cinematic Voyage...
-          </span>
         </div>
       )}
 
-      {/* Minimal Floating Top Controls (Audio Aura & Coordinates) */}
-      <div className="absolute top-8 left-8 right-8 z-30 flex items-center justify-between pointer-events-none">
-        <div className="flex items-center gap-3">
-          <span className="font-cinzel text-sm md:text-base font-bold tracking-[0.25em] text-[#FBF9F5] drop-shadow-md">
-            AMRIT MAHAL
-          </span>
-          <span className="hidden sm:inline text-white/40 text-xs">•</span>
-          <span className="hidden sm:inline font-sans text-[11px] tracking-[0.2em] text-[#D4AF37]/80 uppercase drop-shadow-md">
-            Udaipur
-          </span>
-        </div>
-
-        {/* Discreet Sound Toggle */}
-        <button
-          onClick={toggleSound}
-          className="pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-sans border border-white/10 hover:border-[#D4AF37]/50 bg-black/40 backdrop-blur-md text-white/70 hover:text-white transition-all cursor-pointer"
-          title={isPlayingAudio ? 'Mute' : 'Play Palace Sound'}
-        >
-          {isPlayingAudio ? (
-            <>
-              <Volume2 className="w-3.5 h-3.5 text-[#D4AF37] animate-pulse" />
-              <span className="text-[10px] tracking-widest text-[#D4AF37] uppercase font-medium">
-                Sound On
-              </span>
-            </>
-          ) : (
-            <>
-              <VolumeX className="w-3.5 h-3.5 text-white/50" />
-              <span className="text-[10px] tracking-widest uppercase">
-                Sound Off
-              </span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Seamless Floating Cinematic Text Overlay */}
-      <div className="relative z-20 w-full h-full max-w-6xl mx-auto px-8 md:px-16 flex flex-col justify-center pointer-events-none">
+      {/* Floating Silver Typography Overlay */}
+      <div className="relative z-20 w-full h-full max-w-5xl mx-auto px-8 md:px-16 flex flex-col justify-center pointer-events-none select-none">
         <div
           key={activeChapter.id}
           className={`transition-all duration-700 ease-out transform pointer-events-auto ${
             activeChapter.align === 'center'
-              ? 'text-center mx-auto max-w-2xl'
+              ? 'text-center mx-auto max-w-xl'
               : activeChapter.align === 'right'
-              ? 'text-right ml-auto max-w-xl'
-              : 'text-left mr-auto max-w-xl'
+              ? 'text-right ml-auto max-w-lg'
+              : 'text-left mr-auto max-w-lg'
           }`}
         >
-          {/* Section Indicator */}
+          {/* Subtle Silver Chapter Crest */}
           <div
-            className={`flex items-center gap-3 mb-3 ${
+            className={`flex items-center gap-2.5 mb-2.5 ${
               activeChapter.align === 'center'
                 ? 'justify-center'
                 : activeChapter.align === 'right'
@@ -302,64 +262,45 @@ export default function CinematicScroller({ onOpenReserve }) {
                 : 'justify-start'
             }`}
           >
-            <span className="w-8 h-[1px] bg-[#D4AF37]/70" />
-            <span className="font-sans text-[11px] tracking-[0.3em] uppercase text-[#D4AF37] font-semibold drop-shadow-sm">
+            <div className="w-8 embroidery-stitch-line opacity-50" />
+            <svg
+              className="w-3.5 h-3.5 text-slate-300 fill-current drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 2L14.5 7.5L20 4.5L18 12H6L4 4.5L9.5 7.5L12 2Z" />
+            </svg>
+            <span className="font-decorative text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-slate-300 font-medium drop-shadow-sm">
               {activeChapter.label}
             </span>
-            <span className="w-8 h-[1px] bg-[#D4AF37]/70" />
+            <div className="w-8 embroidery-stitch-line opacity-50" />
           </div>
 
-          {/* Majestic Title */}
-          <h1 className="font-cinzel text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.08em] text-[#FBF9F5] leading-tight mb-3 drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+          {/* Silver Title (Small & Refined) */}
+          <h1 className="embroidery-title text-xl sm:text-2xl md:text-3xl font-semibold leading-snug mb-2">
             {activeChapter.title}
           </h1>
 
-          {/* Elegant Subtitle */}
-          <h2 className="font-cormorant text-xl sm:text-2xl md:text-3xl italic text-[#E5C358] tracking-wide mb-3 drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+          {/* Silver Separator Line */}
+          <div
+            className={`w-16 my-2 embroidery-stitch-line opacity-60 ${
+              activeChapter.align === 'center'
+                ? 'mx-auto'
+                : activeChapter.align === 'right'
+                ? 'ml-auto'
+                : 'mr-auto'
+            }`}
+          />
+
+          {/* Silver Subtitle */}
+          <h2 className="embroidery-sub text-xs sm:text-sm md:text-base font-normal tracking-wide mb-2">
             {activeChapter.subtitle}
           </h2>
 
-          {/* Brief Villa Info */}
-          <p className="font-sans text-xs sm:text-sm text-white/85 font-light tracking-wide leading-relaxed max-w-lg drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
+          {/* Silver Description */}
+          <p className="embroidery-desc text-[11px] sm:text-xs font-light tracking-wide leading-relaxed max-w-md">
             {activeChapter.info}
           </p>
-
-          {/* Optional Action Button in Twilight Finale */}
-          {activeChapter.showCta && (
-            <div className="mt-8 flex justify-center">
-              <button
-                onClick={onOpenReserve}
-                className="px-8 py-3 rounded-full bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B12] font-cinzel text-xs font-bold tracking-[0.25em] uppercase transition-all duration-300 shadow-[0_0_30px_rgba(212,175,55,0.5)] hover:scale-105 cursor-pointer flex items-center gap-2"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#070B12]" />
-                <span>Reserve Sanctuary</span>
-              </button>
-            </div>
-          )}
         </div>
-      </div>
-
-      {/* Floating Bottom Minimal Telemetry & Scroll Cue */}
-      <div className="absolute bottom-8 left-8 right-8 z-30 flex items-center justify-between text-[11px] font-sans tracking-[0.2em] text-white/60 pointer-events-none">
-        <div className="flex items-center gap-2 drop-shadow-md">
-          <span className="text-[#D4AF37] font-mono">0{activeChapterIndex + 1}</span>
-          <span>/</span>
-          <span className="font-mono">06</span>
-          <span className="hidden sm:inline text-white/40">•</span>
-          <span className="hidden sm:inline text-white/80 uppercase">{activeChapter.label}</span>
-        </div>
-
-        {/* Scroll Cue (Only shows in initial scenes) */}
-        {scrollProgress < 85 ? (
-          <div className="flex items-center gap-2 text-white/70 animate-pulse drop-shadow-md">
-            <span className="text-[10px] tracking-[0.25em] uppercase">Scroll to Travel</span>
-            <ChevronDown className="w-4 h-4 text-[#D4AF37]" />
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 text-[#D4AF37] drop-shadow-md">
-            <span className="text-[10px] tracking-[0.25em] uppercase">Lake Pichola</span>
-          </div>
-        )}
       </div>
     </section>
   );
